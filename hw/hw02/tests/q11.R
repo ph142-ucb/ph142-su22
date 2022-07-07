@@ -6,7 +6,10 @@ test = list(
       name = NA,
       points = 1.0,
       code = {
-        expect_true(all.equal(CS_summary$mean_CS, 15.26642, tol = 0.01))
+        test_that("p11a", {
+          expect_true(all.equal(CS_summary$mean_CS, 15.26642, tol = 0.01))
+          print("Checking: CS_summary has a column called `mean_CS` with the correct value")
+        })
       }
     ),
     ottr::TestCase$new(
@@ -14,7 +17,10 @@ test = list(
       name = NA,
       points = 1.0,
       code = {
-        expect_true(all.equal(CS_summary$median_CS, 15.6, tol = 0.01))
+        test_that("p11b", {
+          expect_true(all.equal(CS_summary$median_CS, 15.6, tol = 0.01))
+          print("Checking: CS_summary has a column called `median_CS` with the correct value")
+        })
       }
     )
   )

@@ -6,7 +6,10 @@ test = list(
       name = NA,
       points = 1.0,
       code = {
-        expect_true(p2 == 'skewed right')
+        test_that("p2a", {
+          expect_true(p2 == 'skewed right')
+          print("Checking: chose the correct selection")
+        })
       }
     )
   )

@@ -6,7 +6,10 @@ test = list(
       name = NA,
       points = 0.25,
       code = {
-        expect_true("ggplot" %in% class(p7))
+        test_that("p7a", {
+          expect_true("ggplot" %in% class(p7))
+          print("Checking: p7 is a ggplot")
+        })
       }
     ),
     ottr::TestCase$new(
@@ -14,7 +17,10 @@ test = list(
       name = NA,
       points = 0.25,
       code = {
-        expect_true(identical(p7$data, CS_data))
+        test_that("p7b", {
+          expect_true(identical(p7$data, CS_data))
+          print("Checking: Using CS_data")
+        })
       }
     ),
     ottr::TestCase$new(
@@ -22,7 +28,10 @@ test = list(
       name = NA,
       points = 0.25,
       code = {
-        expect_true(rlang::quo_get_expr(p7$mapping$x) == "Income_Group_order")
+        test_that("p7c", {
+          expect_true(rlang::quo_get_expr(p7$mapping$x) == "Income_Group_order")
+          print("Checking: Income_Group_order is on the x-axis")
+        })
       }
     ),
     ottr::TestCase$new(
@@ -30,7 +39,10 @@ test = list(
       name = NA,
       points = 0.25,
       code = {
-        expect_true("GeomBar" %in% class(p7$layers[[1]]$geom))
+        test_that("p7d", {
+          expect_true("GeomBar" %in% class(p7$layers[[1]]$geom))
+          print("Checking: Made a barchart")
+        })
       }
     )
   )
