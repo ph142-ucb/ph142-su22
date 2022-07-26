@@ -1,0 +1,124 @@
+---
+title: 'Lab07: Plots of the sampled means and their confidence intervals'
+output: pdf_document
+---
+
+This file is for the GSI, though you can run the code too if you'd like.
+
+The following chunk installs googlesheets4, a predecessor of the googlesheets package.
+```{r}
+install.packages("googlesheets4")
+```
+
+```{r import-gs4-key}
+library(googlesheets4)
+library(dplyr)
+library(ggplot2)
+# fyi, sheet URLs (you might not need these, but make sure you first open the sheet in your browser or the following code won't run.)
+
+# Lab 101 (Alma): https://docs.google.com/spreadsheets/d/1rkj6zFB05NVJtp6JvHmC7CdHKDabKrCaI5V5gCS7BNs/edit#gid=0
+# Lab 102 (Defne & Sylvia): https://docs.google.com/spreadsheets/d/1CCa-npOK90Oy8Xh0LNq5mRIJmDj655cYa7N5EKuit74/edit#gid=0
+# Lab 103/104 (Iris & Pari): https://docs.google.com/spreadsheets/d/1mYGysAp3b7uHcB7JsnXzjwSx-yPu7fl5TdCGqGDjktQ/edit#gid=0
+# Lab 105/106 (Nola): https://docs.google.com/spreadsheets/d/1V6zJJOQkhtLE2YyPDHdwgPDQ2Gt_tf_lODiG-0jk5O8/edit#gid=0
+
+
+# Uncomment your my_key object for your lab 
+
+#Lab101: my_key <- "1rkj6zFB05NVJtp6JvHmC7CdHKDabKrCaI5V5gCS7BNs"
+#Lab102: my_key <- "1CCa-npOK90Oy8Xh0LNq5mRIJmDj655cYa7N5EKuit74"
+#Lab103/104: my_key <- "1mYGysAp3b7uHcB7JsnXzjwSx-yPu7fl5TdCGqGDjktQ"
+#Lab105/106: my_key <- "1V6zJJOQkhtLE2YyPDHdwgPDQ2Gt_tf_lODiG-0jk5O8"
+```
+
+Run the chunk below to authenticate your berkeley.edu account with the Tidyverse API Package.
+
+*Make sure you click on the third checkbox to allow Tidyverse to read your sheets.*
+- If you didn't check the box, you will receive the following error: `Client error: (403) Permission Denied`
+- To resolve the error above, just rerun the chunk below and make sure you select the third checkbox option.
+- You should be able to import data from your google sheets once permission is given.
+
+```{r gs-auth}
+gs4_auth(
+  scopes = 'https://www.googleapis.com/auth/spreadsheets',
+  path = Sys.getenv('GOOGLE_DRIVE_KEY')
+)
+```
+
+If the line segments are too smushed, change the range of the google sheets to fit close to the total number of observations on the google sheet (e.g. if there are a total of ~50 observations from all of your students combined, set the range from A1 to F55).
+
+```{r sample-size-10}
+our_sheet_ss_10 <- read_sheet(my_key, range = "A1:F300")
+
+our_sheet_ss_10 <- our_sheet_ss_10 %>% 
+  mutate(missed = ((lower_CI > 70) & (upper_CI > 70)) | ((lower_CI < 70) & (upper_CI < 70)))
+CI_plot_n10 <- ggplot(our_sheet_ss_10, aes(x = sample_mean_heights, y = sample_id)) +
+  geom_point(aes(col = missed)) +
+  geom_point() + 
+  geom_segment(aes(x = lower_CI, xend = upper_CI, yend = sample_id, col = missed)) +
+  geom_vline(xintercept = 70, col = "blue") +
+  labs(y = "Sample", x = "Sample mean", title = "95% CIs, when sample size = 10") + 
+  scale_x_continuous(limits = c(65, 75)) + 
+  scale_y_continuous(limits = c(0, 20))
+CI_plot_n10
+```
+
+
+```{r sample-size-50}
+our_sheet_ss_50 <- read_sheet(my_key, sheet = "n = 50", range = "A1:F300")
+
+#our_sheet_ss_50 <- shared_gs %>% gs_read("n = 50")
+our_sheet_ss_50 <- our_sheet_ss_50 %>% 
+  mutate(missed = ((lower_CI > 70) & (upper_CI > 70)) | ((lower_CI < 70) & (upper_CI < 70)))
+CI_plot_n50 <- ggplot(our_sheet_ss_50, aes(x = sample_mean_heights, y = sample_id)) +
+  geom_point() + 
+  geom_segment(aes(x = lower_CI, xend = upper_CI, yend = sample_id)) +
+  geom_vline(xintercept = 70, col = "blue") +
+  labs(y = "Sample", x = "Sample mean", title = "95% CIs, when sample size = 50") + 
+  scale_x_continuous(limits = c(65, 75)) + 
+  scale_y_continuous(limits = c(0, 50))
+CI_plot_n50
+```
+
+```{r samples-size-500}
+our_sheet_ss_500 <- read_sheet(my_key, sheet = "n = 500", range = "A1:F300")
+
+our_sheet_ss_500 <- our_sheet_ss_500 %>% 
+  mutate(missed = ((lower_CI > 70) & (upper_CI > 70)) | ((lower_CI < 70) & (upper_CI < 70)))
+CI_plot_n500 <- ggplot(our_sheet_ss_500, aes(x = sample_mean_heights, y = sample_id)) +
+  geom_point() + 
+  geom_segment(aes(x = lower_CI, xend = upper_CI, yend = sample_id)) +
+  geom_vline(xintercept = 70, col = "blue") +
+  labs(y = "Sample", x = "Sample mean", title = "95% CIs, when sample size = 500") + 
+  scale_x_continuous(limits = c(65, 75))
+CI_plot_n500
+```
+
+Run this code if you want to simulate on your own many samples:
+
+```{r}
+alameda_pop <- read.csv("data/L07_Alameda.csv")
+known_pop_sd <- 2.786314
+
+
+sample_size <- 10 
+calc_sample_stats <- function(df) {
+  df %>% 
+    summarize(mean_heights = mean(height)) %>%
+    mutate(lower_CI = mean_heights - 1.96 * known_pop_sd / sqrt(sample_size),
+           upper_CI = mean_heights + 1.96 * known_pop_sd / sqrt(sample_size))
+  
+}
+many.sample.stats <- replicate(1000, sample_n(alameda_pop, sample_size), simplify = F) %>%
+  lapply(., calc_sample_stats) %>%
+  bind_rows() %>%
+  mutate(sample.id = 1:n())
+many.sample.stats <- many.sample.stats %>% mutate(missed = ((lower_CI > 70) & (upper_CI > 70)) | 
+                                                    ((lower_CI < 70) & (upper_CI < 70)))
+ggplot(many.sample.stats %>% filter(sample.id < 100), aes(x = mean_heights, y = sample.id)) + 
+  geom_point(aes(col = missed)) + 
+  geom_segment(aes(x = lower_CI, xend = upper_CI, yend = sample.id, col = missed)) +
+  geom_vline(xintercept = 70, col = "blue") +
+  labs(y = "Sample", x = "Sample mean", title = paste0("95% CIs, when sample size = ", sample_size)) + 
+  scale_x_continuous(limits = c(65, 75))
+```
+
